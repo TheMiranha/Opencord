@@ -2,6 +2,7 @@ package com.miranda.opencord.user.infrastructure.controller;
 
 import com.miranda.opencord.core.infrastructure.controller.dto.ErrorResponse;
 import com.miranda.opencord.user.domain.exception.EmailInUse;
+import com.miranda.opencord.user.domain.exception.InvalidCredentials;
 import com.miranda.opencord.user.domain.exception.UsernameInUse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,10 +23,18 @@ public class UserExceptionHandler {
         );
     }
 
-
     @ExceptionHandler(EmailInUse.class)
     public ResponseEntity<ErrorResponse> handleEmailInUseException(
             EmailInUse exception
+    ) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(
+                new ErrorResponse(exception.getMessage(), Instant.now())
+        );
+    }
+
+    @ExceptionHandler(InvalidCredentials.class)
+    public ResponseEntity<ErrorResponse> handleEmailInUseException(
+            InvalidCredentials exception
     ) {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(
                 new ErrorResponse(exception.getMessage(), Instant.now())
