@@ -8,6 +8,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @AllArgsConstructor
@@ -25,6 +26,10 @@ public class UserService {
 
     public Optional<UserEntity> findByEmailIgnoreCase(String email) {
         return this.userRepository.findByEmailIgnoreCase(email);
+    }
+
+    public Optional<UserEntity> findById(UUID id) {
+        return this.userRepository.findById(id);
     }
 
 

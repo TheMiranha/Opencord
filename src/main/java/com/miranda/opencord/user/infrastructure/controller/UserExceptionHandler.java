@@ -3,6 +3,7 @@ package com.miranda.opencord.user.infrastructure.controller;
 import com.miranda.opencord.core.infrastructure.controller.dto.ErrorResponse;
 import com.miranda.opencord.user.domain.exception.EmailInUse;
 import com.miranda.opencord.user.domain.exception.InvalidCredentials;
+import com.miranda.opencord.user.domain.exception.UserNotFound;
 import com.miranda.opencord.user.domain.exception.UsernameInUse;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
@@ -17,8 +18,7 @@ public class UserExceptionHandler {
 
     @ExceptionHandler(UsernameInUse.class)
     public ResponseEntity<ErrorResponse> handleUsernameInUseException(
-            UsernameInUse exception,
-            HttpServletRequest request
+            UsernameInUse exception
     ) {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(
                 new ErrorResponse(exception.getMessage())
@@ -27,8 +27,7 @@ public class UserExceptionHandler {
 
     @ExceptionHandler(EmailInUse.class)
     public ResponseEntity<ErrorResponse> handleEmailInUseException(
-            EmailInUse exception,
-            HttpServletRequest request
+            EmailInUse exception
     ) {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(
                 new ErrorResponse(exception.getMessage())
@@ -37,16 +36,20 @@ public class UserExceptionHandler {
 
     @ExceptionHandler(InvalidCredentials.class)
     public ResponseEntity<ErrorResponse> handleEmailInUseException(
-            InvalidCredentials exception,
-            HttpServletRequest request
+            InvalidCredentials exception
     ) {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(
                 new ErrorResponse(exception.getMessage())
         );
     }
 
-    private String getRequestId(HttpServletRequest request) {
-        Object requestIdObj = request.getAttribute("requestId");
-        return requestIdObj != null ? requestIdObj.toString() : "N/A";
+    @ExceptionHandler(UserNotFound.class)
+    public ResponseEntity<ErrorResponse> handleEmailInUseException(
+            UserNotFound exception
+    ) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                new ErrorResponse(exception.getMessage())
+        );
     }
+
 }

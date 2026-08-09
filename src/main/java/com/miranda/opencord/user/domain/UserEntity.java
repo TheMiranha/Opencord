@@ -45,5 +45,4 @@ public class UserEntity {
         this.updatedAt = now;
         this.createdAt = now;
     }
-
 }
