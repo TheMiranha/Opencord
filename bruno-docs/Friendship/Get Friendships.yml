@@ -8,7 +8,7 @@ http:
   url: "{{HOST}}/friendship"
   auth:
     type: bearer
-    token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJvcGVuY29yZC1hcGkiLCJzdWIiOiJqb2hud2lja0BnbWFpbC5jb20iLCJleHAiOjE3ODYyNTYzOTN9.IROlP2zYRVl17VgupUjrBvLpfgVAd5QABILg14O_uMo
+    token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJvcGVuY29yZC1hcGkiLCJzdWIiOiJqb2hud2lja0BnbWFpbC5jb20iLCJleHAiOjE3ODYyNjI0ODB9.uEpV92y-Mn2iEfWwGivcoB6ksHwPkBlEhmR6VcHg2OQ
 
 settings:
   encodeUrl: true

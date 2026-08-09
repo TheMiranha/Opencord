@@ -2,7 +2,9 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>Opencord - Web Client (Canais)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Opencord - Chat & WebRTC</title>
+    <!-- Mantemos as bibliotecas do STOMP para o Chat de Texto -->
     <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
     <style>
@@ -14,7 +16,7 @@
         .header input { flex: 1; max-width: 400px; padding: 8px; background: #313244; border: 1px solid #45475a; color: #cdd6f4; border-radius: 4px; }
         .header button { padding: 8px 15px; background-color: #89b4fa; color: #11111b; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; }
         .header button:disabled { background-color: #45475a; cursor: not-allowed; }
-        #userInfo { margin-left: auto; font-size: 0.9em; color: #a6adc8; }
+        #userInfo { margin-left: auto; font-size: 0.9em; color: #a6adc8; font-weight: bold; }
 
         /* MAIN LAYOUT */
         .main-container { display: flex; flex: 1; overflow: hidden; }
@@ -26,12 +28,24 @@
         .channel-item { padding: 12px; margin-bottom: 5px; background: #313244; border-radius: 6px; cursor: pointer; transition: 0.2s; display: flex; justify-content: space-between; align-items: center; }
         .channel-item:hover { background: #45475a; }
         .channel-item.active { background: #89b4fa; color: #11111b; font-weight: bold; }
-        .notification-dot { display: none; width: 10px; height: 10px; background: #f38ba8; border-radius: 50%; }
-        .channel-item.has-unread .notification-dot { display: block; }
 
-        /* CHAT AREA */
-        .chat-area { flex: 1; display: flex; flex-direction: column; background: #1e1e2e; }
-        .chat-header { padding: 15px; background: #181825; border-bottom: 1px solid #313244; font-weight: bold; font-size: 1.1em; }
+        /* CONTENT AREA (VIDEO + CHAT) */
+        .content-area { flex: 1; display: flex; flex-direction: column; background: #1e1e2e; }
+
+        /* CALL HEADER & CONTROLS */
+        .chat-header { padding: 15px; background: #181825; border-bottom: 1px solid #313244; display: flex; justify-content: space-between; align-items: center; }
+        .call-controls { display: flex; gap: 10px; }
+        .btn-call { background-color: #a6e3a1; color: #11111b; padding: 8px 15px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; display: none; }
+        .btn-call.danger { background-color: #f38ba8; }
+
+        /* VIDEO GRID (WEBRTC) */
+        .video-grid { display: none; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px; padding: 20px; background: #11111b; border-bottom: 1px solid #313244; max-height: 50vh; overflow-y: auto; }
+        .video-grid.active { display: grid; }
+        .video-container { position: relative; background: #000; border-radius: 8px; overflow: hidden; aspect-ratio: 16/9; display: flex; align-items: center; justify-content: center; }
+        .video-container video { width: 100%; height: 100%; object-fit: cover; }
+        .video-label { position: absolute; bottom: 10px; left: 10px; background: rgba(0,0,0,0.6); padding: 4px 8px; border-radius: 4px; font-size: 0.8em; }
+
+        /* CHAT MESSAGES */
         .messages-container { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
         .message-bubble { padding: 10px 14px; border-radius: 8px; max-width: 70%; line-height: 1.4; }
         .message-row { display: flex; flex-direction: column; margin-bottom: 5px; }
@@ -40,23 +54,21 @@
         .message-bubble.me { background: #89b4fa; color: #11111b; }
         .message-bubble.them { background: #313244; color: #cdd6f4; }
         .message-sender { font-size: 0.8em; margin-bottom: 4px; color: #a6adc8; }
-        .message-row.me .message-sender { display: none; } /* Oculta meu próprio nome em cima da bolha */
+        .message-row.me .message-sender { display: none; }
 
         /* CHAT INPUT */
         .input-area { padding: 15px; background: #181825; border-top: 1px solid #313244; display: flex; gap: 10px; }
         .input-area input { flex: 1; padding: 12px; background: #313244; border: 1px solid #45475a; color: #cdd6f4; border-radius: 6px; }
-        .input-area button { padding: 10px 20px; background-color: #a6e3a1; color: #11111b; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; }
+        .input-area button { padding: 10px 20px; background-color: #89b4fa; color: #11111b; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; }
         .input-area button:disabled { background-color: #45475a; cursor: not-allowed; }
-
-        .system-msg { text-align: center; color: #f9e2af; font-size: 0.9em; margin: 10px 0; }
     </style>
 </head>
 <body>
 
 <div class="header">
-    <input type="text" id="jwtToken" placeholder="Cole seu Token JWT (Bearer) aqui...">
-    <button id="connectBtn" onclick="initApp()">Conectar</button>
-    <button id="disconnectBtn" onclick="disconnect()" disabled>Desconectar</button>
+    <input type="text" id="jwtToken" placeholder="Cole seu Token JWT (Bearer) do Opencord...">
+    <button id="connectBtn">Conectar ao App</button>
+    <button id="disconnectBtn" disabled>Desconectar</button>
     <div id="userInfo">Desconectado</div>
 </div>
 
@@ -64,235 +76,36 @@
     <div class="sidebar">
         <div class="sidebar-header">Mensagens Diretas</div>
         <div class="channel-list" id="channelList">
-            <!-- Canais renderizados aqui via JS -->
+            <!-- Canais renderizados via JS -->
         </div>
     </div>
-    <div class="chat-area">
-        <div class="chat-header" id="chatHeader">Selecione uma conversa</div>
-        <div class="messages-container" id="messagesContainer">
-            <!-- Mensagens renderizadas aqui -->
+
+    <div class="content-area">
+        <div class="chat-header">
+            <span id="chatHeaderTitle">Selecione uma conversa</span>
+            <div class="call-controls">
+                <button id="joinCallBtn" class="btn-call">Iniciar Voz/Vídeo</button>
+                <button id="leaveCallBtn" class="btn-call danger">Sair da Call</button>
+            </div>
         </div>
+
+        <div class="video-grid" id="videoGrid">
+            <!-- Os elementos <video> e <audio> do LiveKit entrarão aqui -->
+        </div>
+
+        <div class="messages-container" id="messagesContainer">
+            <!-- Mensagens de texto -->
+        </div>
+
         <div class="input-area">
-            <input type="text" id="messageInput" placeholder="Envie uma mensagem..." disabled onkeypress="handleEnter(event)">
-            <button id="sendBtn" onclick="sendMessage()" disabled>Enviar</button>
+            <input type="text" id="messageInput" placeholder="Envie uma mensagem..." disabled>
+            <button id="sendBtn" disabled>Enviar</button>
         </div>
     </div>
 </div>
 
-<script>
-    // --- ESTADO DA APLICAÇÃO (Memória Front-end) ---
-    const state = {
-        token: '',
-        currentUser: null,
-        channels: [],     // Lista de canais carregados da API
-        messages: {},     // Dicionário: { "channelId": [ { senderId, content }, ... ] }
-        activeChannelId: null,
-        stompClient: null
-    };
-
-    const API_BASE = window.location.origin;
-
-    // --- 1. INICIALIZAÇÃO (HTTP FETCH) ---
-    async function initApp() {
-        const tokenInput = document.getElementById('jwtToken').value.trim();
-        if (!tokenInput) { alert("Insira o token!"); return; }
-        state.token = tokenInput;
-
-        try {
-            // A. Buscar dados do usuário logado (Para saber quem eu sou)
-            const meRes = await fetch(`${API_BASE}/user/me`, {
-                headers: { 'Authorization': `Bearer ${state.token}` }
-            });
-            if (!meRes.ok) throw new Error("Falha na autenticação (Token inválido?)");
-            const meJson = await meRes.json();
-            state.currentUser = meJson.data; // O wrapper envelopa em .data
-            document.getElementById('userInfo').innerText = `Logado como: @${state.currentUser.username}`;
-
-            // B. Buscar lista de canais (DMs)
-            const channelsRes = await fetch(`${API_BASE}/channels/@me`, {
-                headers: { 'Authorization': `Bearer ${state.token}` }
-            });
-            const channelsJson = await channelsRes.json();
-            state.channels = channelsJson.data || [];
-
-            // Inicializa o array de mensagens vazio para cada canal
-            state.channels.forEach(ch => {
-                state.messages[ch.id] = [];
-            });
-
-            renderChannelList();
-
-            // C. Conectar no WebSocket
-            connectWebSocket();
-
-        } catch (error) {
-            alert(error.message);
-            console.error(error);
-        }
-    }
-
-    // --- 2. WEBSOCKET (STOMP) ---
-    function connectWebSocket() {
-        const socket = new SockJS('/ws');
-        state.stompClient = Stomp.over(socket);
-        state.stompClient.debug = null; // Desativa logs chatos no console
-
-        state.stompClient.connect({ 'Authorization': 'Bearer ' + state.token }, function (frame) {
-            toggleUI(true);
-            addSystemMessage("Conectado ao servidor em tempo real!");
-
-            // D. Inscreve em TODOS os canais que o usuário faz parte
-            state.channels.forEach(channel => {
-                state.stompClient.subscribe('/topic/channel.' + channel.id, function (messageData) {
-                    handleIncomingMessage(JSON.parse(messageData.body));
-                });
-            });
-
-        }, function (error) {
-            addSystemMessage("Desconectado do WebSocket.");
-            toggleUI(false);
-        });
-    }
-
-    function disconnect() {
-        if (state.stompClient !== null) {
-            state.stompClient.disconnect();
-        }
-        toggleUI(false);
-        state.channels = [];
-        state.messages = {};
-        state.activeChannelId = null;
-        renderChannelList();
-        renderMessages();
-        document.getElementById('userInfo').innerText = "Desconectado";
-    }
-
-    // --- 3. LÓGICA DE MENSAGENS E RENDEREZAÇÃO ---
-    function handleIncomingMessage(chatMessageOutput) {
-        const { channelId, senderId, content } = chatMessageOutput;
-
-        // Salva na memória do frontend
-        if (!state.messages[channelId]) state.messages[channelId] = [];
-        state.messages[channelId].push(chatMessageOutput);
-
-        // Se a mensagem for do canal aberto no momento, atualiza a tela
-        if (state.activeChannelId === channelId) {
-            renderMessages();
-        } else {
-            // Se não, mostra a bolinha de notificação na sidebar
-            const channelDiv = document.getElementById(`channel-${channelId}`);
-            if (channelDiv) channelDiv.classList.add('has-unread');
-        }
-    }
-
-    function sendMessage() {
-        const input = document.getElementById('messageInput');
-        const content = input.value.trim();
-
-        if (!content || !state.activeChannelId) return;
-
-        const requestPayload = {
-            channelId: state.activeChannelId,
-            content: content
-        };
-
-        state.stompClient.send("/app/chat.send", {}, JSON.stringify(requestPayload));
-        input.value = '';
-    }
-
-    // --- 4. FUNÇÕES DE INTERFACE (UI) ---
-    function renderChannelList() {
-        const listDiv = document.getElementById('channelList');
-        listDiv.innerHTML = '';
-
-        state.channels.forEach(channel => {
-            // Descobre quem é a outra pessoa na DM
-            console.log(channel.members);
-            console.log(state.currentUser);
-            const otherMember = channel.members.find(m => m.id !== state.currentUser.id);
-            const channelName = otherMember ? `@${otherMember.username}` : 'Chat Desconhecido';
-
-            const div = document.createElement('div');
-            div.className = `channel-item ${state.activeChannelId === channel.id ? 'active' : ''}`;
-            div.id = `channel-${channel.id}`;
-            div.onclick = () => selectChannel(channel.id, channelName);
-
-            div.innerHTML = `
-                <span>${channelName}</span>
-                <div class="notification-dot"></div>
-            `;
-            listDiv.appendChild(div);
-        });
-    }
-
-    function selectChannel(channelId, channelName) {
-        state.activeChannelId = channelId;
-        document.getElementById('chatHeader').innerText = `Conversando com: ${channelName}`;
-        document.getElementById('messageInput').disabled = false;
-        document.getElementById('sendBtn').disabled = false;
-
-        // Remove notificação e renderiza a sidebar para atualizar a cor de seleção
-        const channelDiv = document.getElementById(`channel-${channelId}`);
-        if (channelDiv) channelDiv.classList.remove('has-unread');
-        renderChannelList();
-
-        renderMessages();
-    }
-
-    function renderMessages() {
-        const container = document.getElementById('messagesContainer');
-        container.innerHTML = '';
-
-        if (!state.activeChannelId) return;
-
-        const msgs = state.messages[state.activeChannelId] || [];
-        const activeChannelData = state.channels.find(c => c.id === state.activeChannelId);
-
-        msgs.forEach(msg => {
-            const isMe = msg.senderId === state.currentUser.id;
-
-            // Busca o username de quem mandou para exibir em cima da bolha
-            const senderInfo = activeChannelData.members.find(m => m.id === msg.senderId);
-            const senderName = senderInfo ? senderInfo.username : 'Desconhecido';
-
-            const row = document.createElement('div');
-            row.className = `message-row ${isMe ? 'me' : 'them'}`;
-
-            row.innerHTML = `
-                <div class="message-sender">${senderName}</div>
-                <div class="message-bubble ${isMe ? 'me' : 'them'}">${msg.content}</div>
-            `;
-            container.appendChild(row);
-        });
-
-        // Rola pro final
-        container.scrollTop = container.scrollHeight;
-    }
-
-    function addSystemMessage(text) {
-        const container = document.getElementById('messagesContainer');
-        const div = document.createElement('div');
-        div.className = 'system-msg';
-        div.innerText = text;
-        container.appendChild(div);
-    }
-
-    function toggleUI(connected) {
-        document.getElementById('connectBtn').disabled = connected;
-        document.getElementById('jwtToken').disabled = connected;
-        document.getElementById('disconnectBtn').disabled = !connected;
-        if (!connected) {
-            document.getElementById('messageInput').disabled = true;
-            document.getElementById('sendBtn').disabled = true;
-            document.getElementById('chatHeader').innerText = 'Selecione uma conversa';
-            document.getElementById('messagesContainer').innerHTML = '';
-        }
-    }
-
-    function handleEnter(e) {
-        if (e.key === 'Enter') sendMessage();
-    }
-</script>
+<!-- Importa o arquivo JS como módulo (Padrão Vite) -->
+<script type="module" src="./main.js"></script>
 
 </body>
 </html>
