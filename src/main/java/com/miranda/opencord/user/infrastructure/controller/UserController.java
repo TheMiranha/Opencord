@@ -16,7 +16,7 @@ public class UserController {
 
     @GetMapping("/me")
     public ResponseEntity<MeResponse> handleMe(@AuthenticationPrincipal UserEntity user) {
-        return ResponseEntity.ok(new MeResponse(user.getUsername(), user.getEmail(), user.getCreatedAt(), user.getUpdatedAt()));
+        return ResponseEntity.ok(new MeResponse(user.getId(), user.getUsername(), user.getEmail(), user.getCreatedAt(), user.getUpdatedAt()));
     }
 
 }

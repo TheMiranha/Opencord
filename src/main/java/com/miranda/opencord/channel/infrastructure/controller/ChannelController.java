@@ -14,13 +14,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import java.util.List;
 
 @Controller
-@RequestMapping("/channel")
+@RequestMapping("/channels")
 @RequiredArgsConstructor
 public class ChannelController {
 
     private final GetDMChannelsUseCase getDMChannelsUseCase;
 
-    @GetMapping("/dm")
+    @GetMapping("/@me")
     public ResponseEntity<List<ChannelOutput>> handleDMs(@AuthenticationPrincipal UserEntity user) {
         return ResponseEntity.ok(
                 getDMChannelsUseCase.execute(new GetDMChannelsCommand(user.getId()))
