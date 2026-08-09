@@ -1,0 +1,22 @@
+info:
+  name: SignIn
+  type: http
+  seq: 3
+
+http:
+  method: POST
+  url: "{{HOST}}/auth/sign-in"
+  body:
+    type: json
+    data: |-
+      {
+        "username": "john_wick",
+        "password": "killedmydogbro"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

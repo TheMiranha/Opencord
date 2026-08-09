@@ -1,0 +1,23 @@
+info:
+  name: Send Friendship Request
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: "{{HOST}}/friendship/request"
+  body:
+    type: json
+    data: |-
+      {
+        "addresseeUsername": "john_wick"
+      }
+  auth:
+    type: bearer
+    token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJvcGVuY29yZC1hcGkiLCJzdWIiOiJjaHVja25vcnJpc0BvdXRsb29rLmNvbSIsImV4cCI6MTc4NjIyNDEzNH0.kIjfRGcHgr_L4Vifl2yFisoxDE55e3SpYfucWCpYro4
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

@@ -1,0 +1,17 @@
+info:
+  name: Get Friendships
+  type: http
+  seq: 2
+
+http:
+  method: GET
+  url: "{{HOST}}/friendship"
+  auth:
+    type: bearer
+    token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJvcGVuY29yZC1hcGkiLCJzdWIiOiJqb2hud2lja0BnbWFpbC5jb20iLCJleHAiOjE3ODYyNTYzOTN9.IROlP2zYRVl17VgupUjrBvLpfgVAd5QABILg14O_uMo
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

@@ -1,0 +1,17 @@
+info:
+  name: Me
+  type: http
+  seq: 5
+
+http:
+  method: GET
+  url: "{{HOST}}/user/me"
+  auth:
+    type: bearer
+    token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJvcGVuY29yZC1hcGkiLCJzdWIiOiJjaHVja25vcnJpc0BvdXRsb29rLmNvbSIsImV4cCI6MTc4NjIyMjQzNn0.1FCL-6nXrXMYk2wQ4ZlcJ8lfb0n8qBTZgZHl2F0xT0s
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
