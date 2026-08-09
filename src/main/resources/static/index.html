@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Opencord - Teste de WebSocket Seguro (Canais)</title>
+    <!-- Importação do SockJS e STOMP.js via CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background-color: #1e1e2e; color: #cdd6f4; }
+        .container { max-width: 600px; margin: auto; padding: 20px; background: #313244; border-radius: 8px; }
+        h2 { text-align: center; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input[type="text"] { width: 100%; padding: 8px; box-sizing: border-box; background: #45475a; border: 1px solid #585b70; color: #cdd6f4; border-radius: 4px; }
+        button { padding: 10px 15px; cursor: pointer; background-color: #89b4fa; color: #11111b; border: none; border-radius: 4px; font-weight: bold; }
+        button:disabled { background-color: #585b70; cursor: not-allowed; }
+        #chat-box { margin-top: 20px; border: 1px solid #585b70; padding: 10px; height: 300px; overflow-y: scroll; background: #181825; border-radius: 4px; }
+        .message { padding: 5px; border-bottom: 1px solid #313244; }
+        .sys-msg { color: #f38ba8; font-size: 0.9em; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Teste WebSocket (Canais Autenticados)</h2>
+
+    <div class="form-group">
+        <label for="jwtToken">Token JWT (Bearer):</label>
+        <input type="text" id="jwtToken" placeholder="Cole seu token gerado no /auth/signin aqui...">
+    </div>
+
+    <div class="form-group">
+        <label for="channelId">ID do Canal (UUID):</label>
+        <input type="text" id="channelId" placeholder="Ex: UUID do canal que você faz parte">
+    </div>
+
+    <div class="form-group">
+        <button id="connectBtn" onclick="connect()">Conectar e Entrar no Canal</button>
+        <button id="disconnectBtn" onclick="disconnect()" disabled>Desconectar</button>
+    </div>
+
+    <hr style="border-color: #585b70; margin: 20px 0;">
+
+    <div class="form-group">
+        <label for="messageContent">Mensagem:</label>
+        <input type="text" id="messageContent" placeholder="Digite algo para enviar ao canal...">
+    </div>
+
+    <button id="sendBtn" onclick="sendMessage()" disabled>Enviar Mensagem</button>
+
+    <div id="chat-box"></div>
+</div>
+
+<script>
+    let stompClient = null;
+    let currentChannelId = "";
+
+    function connect() {
+        const token = document.getElementById('jwtToken').value.trim();
+        const channelInput = document.getElementById('channelId').value.trim();
+
+        if (!token || !channelInput) {
+            alert("Por favor, preencha o Token JWT e o ID do Canal antes de conectar.");
+            return;
+        }
+
+        currentChannelId = channelInput;
+
+        const socket = new SockJS('/ws');
+        stompClient = Stomp.over(socket);
+
+        // Passa o token JWT nos headers da conexão STOMP
+        const headers = {
+            'Authorization': 'Bearer ' + token
+        };
+
+        stompClient.connect(headers, function (frame) {
+            setConnected(true);
+            showLog("Conectado com sucesso ao STOMP! " + frame, true);
+            showLog("Tentando inscrição no canal: " + currentChannelId, true);
+
+            // Tenta se inscrever no canal. O Interceptor no backend validará se você é membro.
+            stompClient.subscribe('/topic/channel.' + currentChannelId, function (message) {
+                const body = JSON.parse(message.body);
+                // Exibe a mensagem recebida formatando o ID do canal para ficar mais curto visualmente
+                showLog("[Canal " + body.channelId.substring(0,8) + "...] " + body.senderId + " enviou: " + body.content);
+            });
+
+        }, function(error) {
+            showLog("Erro de conexão (Conexão recusada, JWT inválido ou você não é membro do canal): " + error, true);
+            setConnected(false);
+        });
+    }
+
+    function disconnect() {
+        if (stompClient !== null) {
+            stompClient.disconnect();
+        }
+        setConnected(false);
+        showLog("Desconectado do canal.", true);
+    }
+
+    function sendMessage() {
+        const content = document.getElementById('messageContent').value;
+
+        if (!content.trim()) {
+            alert("Preencha a Mensagem.");
+            return;
+        }
+
+        // O DTO agora leva apenas o channelId e o content
+        const chatMessage = {
+            channelId: currentChannelId,
+            content: content.trim()
+        };
+
+        stompClient.send("/app/chat.send", {}, JSON.stringify(chatMessage));
+        document.getElementById('messageContent').value = '';
+    }
+
+    function showLog(message, isSystem = false) {
+        const chatBox = document.getElementById('chat-box');
+        const p = document.createElement('p');
+        p.className = isSystem ? 'message sys-msg' : 'message';
+        p.appendChild(document.createTextNode(message));
+        chatBox.appendChild(p);
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    function setConnected(connected) {
+        document.getElementById('connectBtn').disabled = connected;
+        document.getElementById('disconnectBtn').disabled = !connected;
+        document.getElementById('sendBtn').disabled = !connected;
+        document.getElementById('jwtToken').disabled = connected;
+        document.getElementById('channelId').disabled = connected;
+    }
+</script>
+
+</body>
+</html>

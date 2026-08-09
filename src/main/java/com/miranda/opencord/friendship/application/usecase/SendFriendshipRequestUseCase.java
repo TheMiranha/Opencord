@@ -1,5 +1,8 @@
 package com.miranda.opencord.friendship.application.usecase;
 
+import com.miranda.opencord.channel.domain.ChannelEntity;
+import com.miranda.opencord.channel.domain.ChannelType;
+import com.miranda.opencord.channel.infrastructure.service.ChannelService;
 import com.miranda.opencord.friendship.application.dto.SendFriendshipRequestCommand;
 import com.miranda.opencord.friendship.application.dto.SendFriendshipRequestOutput;
 import com.miranda.opencord.friendship.domain.FriendshipEntity;
@@ -14,7 +17,9 @@ import com.miranda.opencord.user.infrastructure.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
 
 @Component
 @RequiredArgsConstructor
@@ -22,6 +27,7 @@ public class SendFriendshipRequestUseCase {
 
     private final FriendshipService friendshipService;
     private final UserService userService;
+    private final ChannelService channelService;
 
     public SendFriendshipRequestOutput execute(SendFriendshipRequestCommand command) {
 
@@ -42,6 +48,15 @@ public class SendFriendshipRequestUseCase {
             FriendshipEntity friendship = alreadyPendingByRequester.get();
             friendship.setStatus(FriendshipStatus.ACCEPTED);
             friendshipService.save(friendship);
+
+            channelService.save(
+                    ChannelEntity.builder()
+                            .type(ChannelType.DM)
+                            .members(
+                                    new HashSet<>(Set.of(requester, addressee))
+                            )
+                            .build()
+            );
 
             return new SendFriendshipRequestOutput(friendship.getId());
         }

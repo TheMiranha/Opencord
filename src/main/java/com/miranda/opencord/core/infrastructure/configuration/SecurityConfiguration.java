@@ -37,6 +37,8 @@ public class SecurityConfiguration {
                         .requestMatchers(HttpMethod.POST, "/auth/sign-up").permitAll()
                         .requestMatchers(HttpMethod.POST, "/auth/sign-in").permitAll()
                         .requestMatchers("/health").permitAll()
+                        .requestMatchers("/ws/**").permitAll()
+                        .requestMatchers("/index.html").permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)
