@@ -1,0 +1,15 @@
+info:
+  name: Get DMs
+  type: http
+  seq: 1
+
+http:
+  method: GET
+  url: "{{HOST}}/channel/dm"
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
