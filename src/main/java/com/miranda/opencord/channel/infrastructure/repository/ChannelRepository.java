@@ -13,11 +13,11 @@ public interface ChannelRepository extends JpaRepository<ChannelEntity, UUID> {
     boolean existsByIdAndMembers_Id(UUID channelId, UUID userId);
 
     @Query("""
-        SELECT DISTINCT c FROM ChannelEntity c 
-        JOIN FETCH c.members 
+        SELECT DISTINCT c FROM ChannelEntity c
+        JOIN FETCH c.members
         WHERE c IN (
-            SELECT c2 FROM ChannelEntity c2 
-            JOIN c2.members m 
+            SELECT c2 FROM ChannelEntity c2
+            JOIN c2.members m
             WHERE m.id = :userId
         )
     """)

@@ -14,10 +14,24 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+  mongodb:
+    image: mongo:latest
+    container_name: opencord_mongo
+    restart: unless-stopped
+    ports:
+      - "27017:27017" # Porta padrão do MongoDB
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: miranda
+      MONGO_INITDB_ROOT_PASSWORD: miranda
+      MONGO_INITDB_DATABASE: opencord
+    volumes:
+      - opencord-mongo-data:/data/db # Volume para os dados não sumirem ao reiniciar
+    networks:
+      - opencord-network
   livekit:
     image: livekit/livekit-server:latest
     container_name: opencord_sfu
-    command: --dev --bind 0.0.0.0 --node-ip 192.168.15.7
+    command: --dev --bind 0.0.0.0 --node-ip 189.78.138.148
     ports:
       - "8000:7880"      # Porta da API REST e Sinalização WebSocket (Importante para o Spring e Client)
       - "5520:5520"      # Porta de fallback TCP para WebRTC
@@ -28,9 +42,18 @@ services:
       LIVEKIT_RTC_TCP_PORT: 5520
     networks:
       - opencord-network
+  redis:
+    image: redis:alpine
+    container_name: opencord-redis
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+    # Comando opcional para otimizar o Redis como um cache leve na memória
+    command: redis-server --save "" --appendonly no
 
 volumes:
   database_data:
+  opencord-mongo-data:
 
 networks:
   opencord-network:
