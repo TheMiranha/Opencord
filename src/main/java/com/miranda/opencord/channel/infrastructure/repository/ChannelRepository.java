@@ -22,4 +22,6 @@ public interface ChannelRepository extends JpaRepository<ChannelEntity, UUID> {
         )
     """)
     List<ChannelEntity> findAllWithMembersByUserId(@Param("userId") UUID userId);
+
+    List<ChannelEntity> findAllByServerId(UUID serverId);
 }

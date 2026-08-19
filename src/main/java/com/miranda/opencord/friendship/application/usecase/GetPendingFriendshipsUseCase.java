@@ -24,15 +24,12 @@ public class GetPendingFriendshipsUseCase {
 
         return friendshipService.findFriendshipsByUserAndStatus(user, FriendshipStatus.PENDING)
                 .stream()
-                .map(friendship -> {
-                    UserEntity friend = friendship.getAddressee().getId() != command.userId() ? friendship.getRequester() : friendship.getAddressee();
-
-                    return new FriendshipOutput(
-                            friendship.getId(),
-                            friend.getUsername(),
-                            friend.getId()
-                    );
-                })
-                .filter(friendshipOutput -> !friendshipOutput.userId().equals(user.getId())).toList();
+                .filter(friendship -> friendship.getAddressee().getId().equals(command.userId()))
+                .map(friendship -> new FriendshipOutput(
+                        friendship.getId(),
+                        friendship.getRequester().getUsername(),
+                        friendship.getRequester().getId()
+                ))
+                .toList();
     }
 }

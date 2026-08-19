@@ -29,4 +29,8 @@ public class ChannelService {
                 .filter(channel -> channel.getType() == ChannelType.DM)
                 .toList();
     }
+
+    public List<ChannelEntity> findAllByServerId(UUID serverId) {
+        return channelRepository.findAllByServerId(serverId);
+    }
 }

@@ -1,0 +1,1 @@
+ALTER TABLE channels ADD COLUMN name VARCHAR(255);

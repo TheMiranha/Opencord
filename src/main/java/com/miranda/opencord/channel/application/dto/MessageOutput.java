@@ -10,6 +10,7 @@ public record MessageOutput(
         String id,
         UUID channelId,
         UUID senderId,
+        String senderUsername,
         String content,
         Instant createdAt
 ) {

@@ -67,6 +67,15 @@ public class WebSocketAuthInterceptorConfiguration implements ChannelInterceptor
                 if (!isMember) {
                     throw new IllegalArgumentException("Acesso Negado: Você não é membro deste canal.");
                 }
+            } else if (destination != null && destination.startsWith("/topic/user.")) {
+                String userIdStr = destination.replace("/topic/user.", "");
+                UsernamePasswordAuthenticationToken auth = (UsernamePasswordAuthenticationToken) accessor.getUser();
+                if (auth == null) throw new IllegalArgumentException("Usuário não autenticado no STOMP.");
+
+                UserEntity user = (UserEntity) auth.getDetails();
+                if (user == null || !user.getId().toString().equals(userIdStr)) {
+                    throw new IllegalArgumentException("Acesso Negado: Você só pode se inscrever no seu próprio canal de notificações.");
+                }
             }
         }
         return message;

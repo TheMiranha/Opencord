@@ -1,0 +1,17 @@
+info:
+  name: Get Pending Friendships
+  type: http
+  seq: 3
+
+http:
+  method: GET
+  url: "{{HOST}}/friendship"
+  auth:
+    type: bearer
+    token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJvcGVuY29yZC1hcGkiLCJzdWIiOiJsdWNhcy5taXJhbmRhLnN0cmFwYXNzb25AZ21haWwuY29tIiwiZXhwIjoxNzg3MDE3MzA4fQ.GNNZmLnC8n5tMFy8qtn1Yu6jVpd4BNhTtKP6nemuPgA
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

@@ -4,9 +4,10 @@ import java.time.Instant;
 import java.util.UUID;
 
 public record SendMessageOutput(
-        String id,            // <- ADICIONE O ID
+        String id,
         UUID senderId,
+        String senderUsername,
         UUID channelId,
         String content,
-        Instant createdAt     // <- ADICIONE A DATA
+        Instant createdAt
 ) {}

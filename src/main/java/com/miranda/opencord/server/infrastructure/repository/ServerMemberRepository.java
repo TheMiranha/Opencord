@@ -1,0 +1,20 @@
+package com.miranda.opencord.server.infrastructure.repository;
+
+import com.miranda.opencord.server.domain.ServerMemberEntity;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
+public interface ServerMemberRepository extends JpaRepository<ServerMemberEntity, UUID> {
+
+    Optional<ServerMemberEntity> findByServerIdAndUserId(UUID serverId, UUID userId);
+
+    @Query("SELECT sm FROM ServerMemberEntity sm JOIN FETCH sm.user WHERE sm.server.id = :serverId")
+    List<ServerMemberEntity> findAllByServerId(@Param("serverId") UUID serverId);
+
+}

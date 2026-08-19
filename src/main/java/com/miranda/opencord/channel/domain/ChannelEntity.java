@@ -1,5 +1,6 @@
 package com.miranda.opencord.channel.domain;
 
+import com.miranda.opencord.server.domain.ServerEntity;
 import com.miranda.opencord.user.domain.UserEntity;
 import jakarta.persistence.*;
 import lombok.*;
@@ -34,11 +35,18 @@ public class ChannelEntity {
     )
     private Set<UserEntity> members = new HashSet<>();
 
+    @Column(name = "name")
+    private String name;
+
     @Column(nullable = false, updatable = false)
     Instant createdAt;
 
     @Column(nullable = false)
     Instant updatedAt;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "server_id")
+    private ServerEntity server;
 
     @PreUpdate
     protected void onUpdate() {
