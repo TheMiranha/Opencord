@@ -7,6 +7,7 @@ public record SendMessageOutput(
         String id,
         UUID senderId,
         String senderUsername,
+        String senderAvatarUrl,
         UUID channelId,
         String content,
         Instant createdAt

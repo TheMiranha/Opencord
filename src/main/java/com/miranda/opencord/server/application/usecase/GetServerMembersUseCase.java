@@ -29,6 +29,7 @@ public class GetServerMembersUseCase {
                         sm.getId(),
                         sm.getUser().getId(),
                         sm.getUser().getUsername(),
+                        sm.getUser().getAvatarUrl(),
                         sm.getRole()
                 ))
                 .collect(Collectors.toList());

@@ -6,5 +6,6 @@ public record ServerMemberOutput(
         UUID id,
         UUID userId,
         String username,
+        String avatarUrl,
         String role
 ) {}

@@ -45,19 +45,22 @@ public class GetChannelMessagesUseCase {
                 .map(MessageDocument::getSenderId)
                 .collect(Collectors.toSet());
 
-        Map<UUID, String> userMap = userRepository.findAllById(senderIds).stream()
-                .collect(Collectors.toMap(UserEntity::getId, UserEntity::getUsername));
+        Map<UUID, UserEntity> userMap = userRepository.findAllById(senderIds).stream()
+                .collect(Collectors.toMap(UserEntity::getId, u -> u));
 
         List<MessageOutput> outputs = messagePage.getContent().stream()
-                .map(doc -> MessageOutput.builder()
-                        .id(doc.getId())
-                        .channelId(doc.getChannelId())
-                        .senderId(doc.getSenderId())
-                        .senderUsername(userMap.getOrDefault(doc.getSenderId(), "Usuário"))
-                        .content(doc.getContent())
-                        .createdAt(doc.getCreatedAt())
-                        .build()
-                )
+                .map(doc -> {
+                    UserEntity sender = userMap.get(doc.getSenderId());
+                    return MessageOutput.builder()
+                            .id(doc.getId())
+                            .channelId(doc.getChannelId())
+                            .senderId(doc.getSenderId())
+                            .senderUsername(sender != null ? sender.getUsername() : "Usuário")
+                            .senderAvatarUrl(sender != null ? sender.getAvatarUrl() : null)
+                            .content(doc.getContent())
+                            .createdAt(doc.getCreatedAt())
+                            .build();
+                })
                 .collect(Collectors.toList());
 
         return new PageImpl<>(outputs, pageRequest, messagePage.getTotalElements());

@@ -11,6 +11,7 @@ public record MessageOutput(
         UUID channelId,
         UUID senderId,
         String senderUsername,
+        String senderAvatarUrl,
         String content,
         Instant createdAt
 ) {

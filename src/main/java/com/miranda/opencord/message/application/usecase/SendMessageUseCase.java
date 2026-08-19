@@ -25,9 +25,9 @@ public class SendMessageUseCase {
             throw new IllegalArgumentException("Você não pode enviar mensagens para este canal.");
         }
 
-        String senderUsername = userService.findById(command.senderId())
-                .map(UserEntity::getUsername)
-                .orElse("Usuário");
+        UserEntity sender = userService.findById(command.senderId()).orElse(null);
+        String senderUsername = sender != null ? sender.getUsername() : "Usuário";
+        String senderAvatarUrl = sender != null ? sender.getAvatarUrl() : null;
 
         MessageDocument savedMessage = messageService.save(MessageDocument.builder()
                 .content(command.content())
@@ -39,6 +39,7 @@ public class SendMessageUseCase {
                 savedMessage.getId(),
                 savedMessage.getSenderId(),
                 senderUsername,
+                senderAvatarUrl,
                 savedMessage.getChannelId(),
                 savedMessage.getContent(),
                 savedMessage.getCreatedAt()

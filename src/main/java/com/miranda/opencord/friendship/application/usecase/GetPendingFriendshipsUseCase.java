@@ -28,6 +28,7 @@ public class GetPendingFriendshipsUseCase {
                 .map(friendship -> new FriendshipOutput(
                         friendship.getId(),
                         friendship.getRequester().getUsername(),
+                        friendship.getRequester().getAvatarUrl(),
                         friendship.getRequester().getId()
                 ))
                 .toList();

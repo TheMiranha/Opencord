@@ -7,6 +7,7 @@ public record MeResponse(
         UUID id,
         String username,
         String email,
+        String avatarUrl,
         Instant createdAt,
         Instant updatedAt
 ) {

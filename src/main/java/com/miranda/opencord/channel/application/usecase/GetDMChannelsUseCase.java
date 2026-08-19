@@ -25,7 +25,7 @@ public class GetDMChannelsUseCase {
                     List<ChannelMemberOutput> members = channel.getMembers()
                             .stream()
                             .map(member -> new ChannelMemberOutput(
-                                member.getId(), member.getUsername()
+                                member.getId(), member.getUsername(), member.getAvatarUrl()
                             ))
                             .toList();
 

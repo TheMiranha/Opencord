@@ -31,6 +31,7 @@ public class GetFriendshipsUseCase {
                     return new FriendshipOutput(
                             friendship.getId(),
                             friend.getUsername(),
+                            friend.getAvatarUrl(),
                             friend.getId()
                     );
                 }).toList();

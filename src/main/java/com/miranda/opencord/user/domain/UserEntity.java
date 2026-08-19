@@ -31,6 +31,9 @@ public class UserEntity {
     @Column(nullable = false, length = 255)
     String hashedPassword;
 
+    @Column(name = "avatar_url", length = 512)
+    String avatarUrl;
+
     @Column(nullable = false, updatable = false)
     Instant createdAt;
 
