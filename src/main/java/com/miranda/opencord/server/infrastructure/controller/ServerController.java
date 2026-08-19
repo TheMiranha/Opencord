@@ -25,6 +25,9 @@ public class ServerController {
     private final CreateServerUseCase createServerUseCase;
     private final GetMyServersUseCase getMyServersUseCase;
     private final GetServerChannelsUseCase getServerChannelsUseCase;
+    private final CreateServerChannelUseCase createServerChannelUseCase;
+    private final DeleteServerChannelUseCase deleteServerChannelUseCase;
+    private final LeaveServerUseCase leaveServerUseCase;
     private final GenerateServerInviteUseCase generateServerInviteUseCase;
     private final GetInviteDetailsUseCase getInviteDetailsUseCase;
     private final JoinServerByInviteUseCase joinServerByInviteUseCase;
@@ -76,6 +79,33 @@ public class ServerController {
 
         List<ServerChannelOutput> channels = getServerChannelsUseCase.execute(serverId, user.getId());
         return ResponseEntity.ok(channels);
+    }
+
+    @PostMapping("/{serverId}/channels")
+    public ResponseEntity<ServerChannelOutput> createServerChannel(
+            @PathVariable UUID serverId,
+            @Valid @RequestBody com.miranda.opencord.server.infrastructure.controller.dto.CreateServerChannelRequest request,
+            @AuthenticationPrincipal UserEntity user) {
+        CreateServerChannelCommand command = new CreateServerChannelCommand(serverId, request.name(), request.type(), user.getId());
+        ServerChannelOutput response = createServerChannelUseCase.execute(command);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @DeleteMapping("/{serverId}/channels/{channelId}")
+    public ResponseEntity<Void> deleteServerChannel(
+            @PathVariable UUID serverId,
+            @PathVariable UUID channelId,
+            @AuthenticationPrincipal UserEntity user) {
+        deleteServerChannelUseCase.execute(serverId, channelId, user.getId());
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{serverId}/leave")
+    public ResponseEntity<Void> leaveServer(
+            @PathVariable UUID serverId,
+            @AuthenticationPrincipal UserEntity user) {
+        leaveServerUseCase.execute(serverId, user.getId());
+        return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/{serverId}/invites")

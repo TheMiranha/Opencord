@@ -7,7 +7,8 @@ public enum ServerPermission {
     KICK_MEMBERS(1L << 3),     // 8
     BAN_MEMBERS(1L << 4),      // 16
     CREATE_INVITE(1L << 5),    // 32
-    MANAGE_INVITES(1L << 6);   // 64
+    MANAGE_INVITES(1L << 6),   // 64
+    MANAGE_CHANNELS(1L << 7);  // 128
 
     private final long value;
 

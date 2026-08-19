@@ -1,28 +1,33 @@
 package com.miranda.opencord.user.application.usecase;
 
-import com.miranda.opencord.storage.infrastructure.service.MinioStorageService;
 import com.miranda.opencord.user.domain.UserEntity;
 import com.miranda.opencord.user.domain.exception.UserNotFound;
 import com.miranda.opencord.user.infrastructure.controller.dto.MeResponse;
+import com.miranda.opencord.user.infrastructure.controller.dto.UpdateUserProfileRequest;
 import com.miranda.opencord.user.infrastructure.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import org.springframework.web.multipart.MultipartFile;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
-public class UpdateUserAvatarUseCase {
+public class UpdateUserProfileUseCase {
 
     private final UserRepository userRepository;
-    private final MinioStorageService storageService;
 
-    public MeResponse execute(UUID userId, MultipartFile file) {
+    @Transactional
+    public MeResponse execute(UUID userId, UpdateUserProfileRequest request) {
         UserEntity user = userRepository.findById(userId).orElseThrow(UserNotFound::new);
 
-        String avatarUrl = storageService.uploadAvatar(userId, file);
-        user.setAvatarUrl(avatarUrl);
+        if (request.bio() != null) {
+            user.setBio(request.bio().trim());
+        }
+        if (request.customStatus() != null) {
+            user.setCustomStatus(request.customStatus().trim());
+        }
+
         UserEntity savedUser = userRepository.save(user);
 
         return new MeResponse(

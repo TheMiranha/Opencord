@@ -134,4 +134,23 @@ public class MinioStorageService {
             throw new RuntimeException("Falha ao salvar o anexo: " + e.getMessage());
         }
     }
+
+    public void deleteFileByUrl(String fileUrl) {
+        if (fileUrl == null || fileUrl.isBlank()) return;
+        try {
+            String prefix = minioUrl + "/" + bucketName + "/";
+            if (fileUrl.startsWith(prefix)) {
+                String objectName = fileUrl.substring(prefix.length());
+                minioClient.removeObject(
+                        RemoveObjectArgs.builder()
+                                .bucket(bucketName)
+                                .object(objectName)
+                                .build()
+                );
+                log.info("Arquivo '{}' removido do bucket MinIO com sucesso.", objectName);
+            }
+        } catch (Exception e) {
+            log.warn("Falha ao remover arquivo do MinIO ({}): {}", fileUrl, e.getMessage());
+        }
+    }
 }

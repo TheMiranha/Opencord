@@ -34,6 +34,12 @@ public class UserEntity {
     @Column(name = "avatar_url", length = 512)
     String avatarUrl;
 
+    @Column(name = "bio", length = 1000)
+    String bio;
+
+    @Column(name = "custom_status", length = 255)
+    String customStatus;
+
     @Column(nullable = false, updatable = false)
     Instant createdAt;
 

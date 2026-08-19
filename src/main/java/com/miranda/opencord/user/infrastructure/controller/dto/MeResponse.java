@@ -8,6 +8,8 @@ public record MeResponse(
         String username,
         String email,
         String avatarUrl,
+        String bio,
+        String customStatus,
         Instant createdAt,
         Instant updatedAt
 ) {
