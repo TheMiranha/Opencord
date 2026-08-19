@@ -11,6 +11,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+
 @Component
 @RequiredArgsConstructor
 public class SendMessageUseCase {
@@ -29,10 +31,27 @@ public class SendMessageUseCase {
         String senderUsername = sender != null ? sender.getUsername() : "Usuário";
         String senderAvatarUrl = sender != null ? sender.getAvatarUrl() : null;
 
+        List<com.miranda.opencord.message.application.dto.MessageAttachmentDto> validAttachments = command.attachments() != null
+                ? command.attachments().stream()
+                .filter(a -> a != null && a.url() != null && !a.url().isBlank())
+                .toList()
+                : null;
+
+        if (validAttachments != null && validAttachments.isEmpty()) {
+            validAttachments = null;
+        }
+
+        List<com.miranda.opencord.message.domain.MessageAttachment> docAttachments = validAttachments != null
+                ? validAttachments.stream()
+                .map(a -> new com.miranda.opencord.message.domain.MessageAttachment(a.url(), a.name(), a.size(), a.contentType()))
+                .toList()
+                : null;
+
         MessageDocument savedMessage = messageService.save(MessageDocument.builder()
                 .content(command.content())
                 .channelId(command.channelId())
                 .senderId(command.senderId())
+                .attachments(docAttachments)
                 .build());
 
         SendMessageOutput message = new SendMessageOutput(
@@ -42,6 +61,7 @@ public class SendMessageUseCase {
                 senderAvatarUrl,
                 savedMessage.getChannelId(),
                 savedMessage.getContent(),
+                validAttachments,
                 savedMessage.getCreatedAt()
         );
 

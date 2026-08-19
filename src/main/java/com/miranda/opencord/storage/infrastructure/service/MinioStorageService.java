@@ -94,4 +94,44 @@ public class MinioStorageService {
             throw new RuntimeException("Falha ao salvar a imagem no servidor de armazenamento: " + e.getMessage());
         }
     }
+
+    public com.miranda.opencord.message.application.dto.MessageAttachmentDto uploadAttachment(MultipartFile file) {
+        if (file.isEmpty()) {
+            throw new IllegalArgumentException("O arquivo enviado está vazio.");
+        }
+
+        long maxBytes = 100 * 1024 * 1024L; // 100MB
+        if (file.getSize() > maxBytes) {
+            throw new IllegalArgumentException("O arquivo ultrapassa o limite máximo de 100MB.");
+        }
+
+        String originalFilename = file.getOriginalFilename() != null ? file.getOriginalFilename() : "arquivo";
+        String contentType = file.getContentType() != null ? file.getContentType() : "application/octet-stream";
+        String sanitizedFilename = originalFilename.replaceAll("[^a-zA-Z0-9._-]", "_");
+
+        String objectName = "attachments/" + UUID.randomUUID() + "/" + sanitizedFilename;
+
+        try (InputStream inputStream = file.getInputStream()) {
+            minioClient.putObject(
+                    PutObjectArgs.builder()
+                            .bucket(bucketName)
+                            .object(objectName)
+                            .stream(inputStream, file.getSize(), -1)
+                            .contentType(contentType)
+                            .build()
+            );
+
+            String fileUrl = minioUrl + "/" + bucketName + "/" + objectName;
+
+            return new com.miranda.opencord.message.application.dto.MessageAttachmentDto(
+                    fileUrl,
+                    originalFilename,
+                    file.getSize(),
+                    contentType
+            );
+        } catch (Exception e) {
+            log.error("Erro ao fazer upload de anexo para o MinIO: {}", e.getMessage(), e);
+            throw new RuntimeException("Falha ao salvar o anexo: " + e.getMessage());
+        }
+    }
 }

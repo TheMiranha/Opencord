@@ -23,6 +23,7 @@ public class MessageDocument {
     UUID channelId;
     UUID senderId;
     String content;
+    java.util.List<MessageAttachment> attachments;
     
     @CreatedDate
     Instant createdAt;

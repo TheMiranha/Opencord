@@ -32,7 +32,8 @@ public class ChatController {
         sendMessageUseCase.execute(new SendMessageCommand(
                 sender.getId(),
                 incomingMessage.channelId(),
-                incomingMessage.content()
+                incomingMessage.content(),
+                incomingMessage.attachments()
         ));
     }
 

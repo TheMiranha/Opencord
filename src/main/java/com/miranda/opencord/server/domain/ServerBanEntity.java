@@ -4,18 +4,18 @@ import com.miranda.opencord.user.domain.UserEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.time.Instant;
 import java.util.UUID;
 
 @Entity
-@Table(name = "server_members")
+@Table(name = "server_bans")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class ServerMemberEntity {
+public class ServerBanEntity {
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
@@ -28,14 +28,18 @@ public class ServerMemberEntity {
     @JoinColumn(name = "user_id", nullable = false)
     private UserEntity user;
 
-    @Column(nullable = false)
-    private String role; // "ADMIN", "MEMBER"
+    @Column(length = 255)
+    private String reason;
 
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(
-            name = "server_member_roles",
-            joinColumns = @JoinColumn(name = "server_member_id"),
-            inverseJoinColumns = @JoinColumn(name = "role_id")
-    )
-    private Set<ServerRoleEntity> roles;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "banned_by_id", nullable = false)
+    private UserEntity bannedBy;
+
+    @Column(nullable = false, updatable = false)
+    private Instant createdAt;
+
+    @PrePersist
+    protected void onCreate() {
+        this.createdAt = Instant.now();
+    }
 }

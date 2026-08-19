@@ -14,7 +14,7 @@ public interface ServerMemberRepository extends JpaRepository<ServerMemberEntity
 
     Optional<ServerMemberEntity> findByServerIdAndUserId(UUID serverId, UUID userId);
 
-    @Query("SELECT sm FROM ServerMemberEntity sm JOIN FETCH sm.user WHERE sm.server.id = :serverId")
+    @Query("SELECT DISTINCT sm FROM ServerMemberEntity sm JOIN FETCH sm.user LEFT JOIN FETCH sm.roles WHERE sm.server.id = :serverId")
     List<ServerMemberEntity> findAllByServerId(@Param("serverId") UUID serverId);
 
 }

@@ -7,7 +7,7 @@ import lombok.*;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID; // <-- Importação do UUID
+import java.util.UUID;
 
 @Entity
 @Table(name = "servers")
@@ -19,7 +19,7 @@ import java.util.UUID; // <-- Importação do UUID
 public class ServerEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id; // <-- Alterado de String para UUID
+    private UUID id;
 
     @Column(nullable = false)
     private String name;
@@ -32,9 +32,15 @@ public class ServerEntity {
     private UserEntity owner;
 
     @OneToMany(mappedBy = "server", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ChannelEntity> channels = new ArrayList<>();
+    private List<ChannelEntity> channels;
 
     @OneToMany(mappedBy = "server", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ServerMemberEntity> members = new ArrayList<>();
+    private List<ServerMemberEntity> members;
+
+    @OneToMany(mappedBy = "server", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ServerRoleEntity> roles;
+
+    @OneToMany(mappedBy = "server", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ServerBanEntity> bans;
 
 }

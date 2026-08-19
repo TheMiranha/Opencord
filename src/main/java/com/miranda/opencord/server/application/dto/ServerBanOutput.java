@@ -1,13 +1,14 @@
 package com.miranda.opencord.server.application.dto;
 
-import java.util.List;
+import java.time.Instant;
 import java.util.UUID;
 
-public record ServerMemberOutput(
+public record ServerBanOutput(
         UUID id,
         UUID userId,
         String username,
         String avatarUrl,
-        String role,
-        List<ServerRoleOutput> roles
+        String reason,
+        String bannedByName,
+        Instant createdAt
 ) {}

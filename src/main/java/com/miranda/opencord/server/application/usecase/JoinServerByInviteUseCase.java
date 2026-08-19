@@ -5,6 +5,7 @@ import com.miranda.opencord.channel.infrastructure.repository.ChannelRepository;
 import com.miranda.opencord.server.domain.ServerEntity;
 import com.miranda.opencord.server.domain.ServerInviteEntity;
 import com.miranda.opencord.server.domain.ServerMemberEntity;
+import com.miranda.opencord.server.infrastructure.repository.ServerBanRepository;
 import com.miranda.opencord.server.infrastructure.repository.ServerInviteRepository;
 import com.miranda.opencord.server.infrastructure.repository.ServerMemberRepository;
 import com.miranda.opencord.server.infrastructure.service.ServerInviteService;
@@ -25,6 +26,7 @@ public class JoinServerByInviteUseCase {
 
     private final ServerInviteService serverInviteService;
     private final ServerMemberService serverMemberService;
+    private final ServerBanRepository serverBanRepository;
     private final ChannelRepository channelRepository;
     private final UserService userService;
 
@@ -35,6 +37,10 @@ public class JoinServerByInviteUseCase {
 
         UserEntity user = userService.findById(userId).orElseThrow(UserNotFound::new);
         ServerEntity server = invite.getServer();
+
+        if (serverBanRepository.existsByServerIdAndUserId(server.getId(), userId)) {
+            throw new IllegalArgumentException("Você foi banido deste servidor e não pode entrar.");
+        }
 
         boolean isAlreadyMember = serverMemberService.findByServerIdAndUserId(server.getId(), userId).isPresent();
         if (isAlreadyMember) {

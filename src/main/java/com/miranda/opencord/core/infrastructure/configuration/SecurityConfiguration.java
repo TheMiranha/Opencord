@@ -42,6 +42,7 @@ public class SecurityConfiguration {
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers(HttpMethod.POST, "/auth/sign-up").permitAll()
                         .requestMatchers(HttpMethod.POST, "/auth/sign-in").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/config").permitAll()
                         .requestMatchers("/health").permitAll()
                         .requestMatchers("/ws/**").permitAll()
                         .requestMatchers("/index.html").permitAll()

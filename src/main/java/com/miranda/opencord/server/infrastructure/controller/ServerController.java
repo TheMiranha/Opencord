@@ -32,6 +32,19 @@ public class ServerController {
     private final DeleteServerInviteUseCase deleteServerInviteUseCase;
     private final GetServerMembersUseCase getServerMembersUseCase;
 
+    // Roles & Moderation Use Cases
+    private final CreateServerRoleUseCase createServerRoleUseCase;
+    private final GetServerRolesUseCase getServerRolesUseCase;
+    private final UpdateServerRoleUseCase updateServerRoleUseCase;
+    private final DeleteServerRoleUseCase deleteServerRoleUseCase;
+    private final ReorderServerRolesUseCase reorderServerRolesUseCase;
+    private final AssignMemberRoleUseCase assignMemberRoleUseCase;
+    private final RemoveMemberRoleUseCase removeMemberRoleUseCase;
+    private final KickServerMemberUseCase kickServerMemberUseCase;
+    private final BanServerMemberUseCase banServerMemberUseCase;
+    private final GetServerBansUseCase getServerBansUseCase;
+    private final UnbanServerMemberUseCase unbanServerMemberUseCase;
+
     @PostMapping
     public ResponseEntity<CreateServerOutput> createServer(
             @Valid @RequestBody CreateServerRequest request,
@@ -108,5 +121,105 @@ public class ServerController {
             @AuthenticationPrincipal UserEntity user) {
         joinServerByInviteUseCase.execute(code, user.getId());
         return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
+
+    // --- CARGOS (ROLES) ---
+
+    @GetMapping("/{serverId}/roles")
+    public ResponseEntity<List<ServerRoleOutput>> getServerRoles(
+            @PathVariable UUID serverId,
+            @AuthenticationPrincipal UserEntity user) {
+        return ResponseEntity.ok(getServerRolesUseCase.execute(serverId, user.getId()));
+    }
+
+    @PostMapping("/{serverId}/roles")
+    public ResponseEntity<ServerRoleOutput> createServerRole(
+            @PathVariable UUID serverId,
+            @Valid @RequestBody com.miranda.opencord.server.infrastructure.controller.dto.CreateServerRoleRequest request,
+            @AuthenticationPrincipal UserEntity user) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(createServerRoleUseCase.execute(serverId, request, user.getId()));
+    }
+
+    @PutMapping("/{serverId}/roles/{roleId}")
+    public ResponseEntity<ServerRoleOutput> updateServerRole(
+            @PathVariable UUID serverId,
+            @PathVariable UUID roleId,
+            @Valid @RequestBody com.miranda.opencord.server.infrastructure.controller.dto.UpdateServerRoleRequest request,
+            @AuthenticationPrincipal UserEntity user) {
+        return ResponseEntity.ok(updateServerRoleUseCase.execute(serverId, roleId, request, user.getId()));
+    }
+
+    @DeleteMapping("/{serverId}/roles/{roleId}")
+    public ResponseEntity<Void> deleteServerRole(
+            @PathVariable UUID serverId,
+            @PathVariable UUID roleId,
+            @AuthenticationPrincipal UserEntity user) {
+        deleteServerRoleUseCase.execute(serverId, roleId, user.getId());
+        return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/{serverId}/roles/reorder")
+    public ResponseEntity<List<ServerRoleOutput>> reorderServerRoles(
+            @PathVariable UUID serverId,
+            @RequestBody com.miranda.opencord.server.infrastructure.controller.dto.ReorderRolesRequest request,
+            @AuthenticationPrincipal UserEntity user) {
+        return ResponseEntity.ok(reorderServerRolesUseCase.execute(serverId, request, user.getId()));
+    }
+
+    @PostMapping("/{serverId}/members/{memberId}/roles/{roleId}")
+    public ResponseEntity<Void> assignMemberRole(
+            @PathVariable UUID serverId,
+            @PathVariable UUID memberId,
+            @PathVariable UUID roleId,
+            @AuthenticationPrincipal UserEntity user) {
+        assignMemberRoleUseCase.execute(serverId, memberId, roleId, user.getId());
+        return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping("/{serverId}/members/{memberId}/roles/{roleId}")
+    public ResponseEntity<Void> removeMemberRole(
+            @PathVariable UUID serverId,
+            @PathVariable UUID memberId,
+            @PathVariable UUID roleId,
+            @AuthenticationPrincipal UserEntity user) {
+        removeMemberRoleUseCase.execute(serverId, memberId, roleId, user.getId());
+        return ResponseEntity.noContent().build();
+    }
+
+    // --- MODERAÇÃO (KICK & BAN) ---
+
+    @PostMapping("/{serverId}/members/{memberId}/kick")
+    public ResponseEntity<Void> kickMember(
+            @PathVariable UUID serverId,
+            @PathVariable UUID memberId,
+            @AuthenticationPrincipal UserEntity user) {
+        kickServerMemberUseCase.execute(serverId, memberId, user.getId());
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/{serverId}/members/{memberId}/ban")
+    public ResponseEntity<Void> banMember(
+            @PathVariable UUID serverId,
+            @PathVariable UUID memberId,
+            @RequestBody(required = false) com.miranda.opencord.server.infrastructure.controller.dto.BanMemberRequest request,
+            @AuthenticationPrincipal UserEntity user) {
+        banServerMemberUseCase.execute(serverId, memberId, request, user.getId());
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/{serverId}/bans")
+    public ResponseEntity<List<ServerBanOutput>> getServerBans(
+            @PathVariable UUID serverId,
+            @AuthenticationPrincipal UserEntity user) {
+        return ResponseEntity.ok(getServerBansUseCase.execute(serverId, user.getId()));
+    }
+
+    @DeleteMapping("/{serverId}/bans/{userId}")
+    public ResponseEntity<Void> unbanMember(
+            @PathVariable UUID serverId,
+            @PathVariable UUID userId,
+            @AuthenticationPrincipal UserEntity user) {
+        unbanServerMemberUseCase.execute(serverId, userId, user.getId());
+        return ResponseEntity.noContent().build();
     }
 }
